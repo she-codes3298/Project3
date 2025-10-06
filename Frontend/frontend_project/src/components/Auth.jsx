@@ -28,6 +28,7 @@ const Auth = () => {
     try {
       const res = await axios.post("http://localhost:5000/login", loginData);
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
       alert("Login successful!");
       window.location.href = "/dashboard";
     } catch (error) {
