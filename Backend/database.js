@@ -1,20 +1,21 @@
 // database.js - PostgreSQL Connection
-const { Pool } = require('pg');
+require("dotenv").config(); // Load environment variables
+const { Pool } = require("pg");
 
 const pool = new Pool({
-  user: 'rupali',      // e.g., 'postgres'
-  host: 'localhost',
-  database: 'rotelearning_app',        // your database name
-  password: 'RUPAli@123',
-  port: 5432,                          // default PostgreSQL port
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
 });
 
 // Test connection
 pool.connect((err, client, release) => {
   if (err) {
-    console.error('❌ Error connecting to PostgreSQL:', err.stack);
+    console.error("❌ Error connecting to PostgreSQL:", err.stack);
   } else {
-    console.log('✅ PostgreSQL connected successfully');
+    console.log("✅ PostgreSQL connected successfully");
     release();
   }
 });
