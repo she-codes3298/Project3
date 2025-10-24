@@ -88,7 +88,7 @@
 }
 
 /* Upload Section */
-.upload-section {
+.upload-section,.ai-section {
   background-color: #1e293b;
   border-radius: 10px;
   padding: 25px;
@@ -126,4 +126,30 @@
 
 .upload-section button:hover {
   background-color: #0ea5e9;
+}
+
+.selected-files {
+  margin: 15px 0;
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 5px;
+}
+
+.selected-files h4 {
+  margin-bottom: 10px;
+}
+
+.selected-files ul {
+  list-style: none;
+  padding: 0;
+}
+
+.selected-files li {
+  padding: 8px;
+  margin: 5px 0;
+  background: white;
+  border-radius: 3px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }

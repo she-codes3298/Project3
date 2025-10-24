@@ -1,0 +1,18 @@
+# Environment files
+.env
+.env.local
+.env.*
+
+# Service account keys and credentials
+vision-key-user.json
+*-key*.json
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Runtime data
+uploads/

@@ -4,10 +4,12 @@ import axios from "axios";
 
 const Dashboard = () => {
   const [topic, setTopic] = useState("");
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]); // Changed to array
   const [recentWorks, setRecentWorks] = useState([]);
   const [userId, setUserId] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [aiResult, setAiResult] = useState(null);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -20,91 +22,96 @@ const Dashboard = () => {
     }
   }, []);
 
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    setFile(selectedFile);
-    console.log("📁 File selected:", selectedFile);
-  };
+// inside Dashboard.jsx
 
-  const handleUpload = async (e) => {
-    e.preventDefault();
-    
-    console.log("🚀 Starting upload...");
-    console.log("📝 Topic:", topic);
-    console.log("📄 File:", file);
-    console.log("👤 UserId:", userId);
+const handleFileChange = (e) => {
+  const selectedFiles = Array.from(e.target.files);
 
-    // Changed validation: Either topic OR file is required
-    if (!topic && !file) {
-      alert("Please provide either a topic or upload a file!");
+  if (selectedFiles.length + files.length > 5) {
+    alert("You can upload up to 5 images only!");
+    return;
+  }
+
+  setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
+  console.log("📁 Files selected:", selectedFiles.length);
+};
+
+const handleUpload = async (e) => {
+  e.preventDefault();
+
+  if (!topic && files.length === 0) {
+    alert("Please provide a topic or at least one file!");
+    return;
+  }
+
+  if (files.length > 5) {
+    alert("You can only upload a maximum of 5 files at once.");
+    return;
+  }
+
+  setUploading(true);
+
+  try {
+    const formData = new FormData();
+    if (topic) formData.append("topic", topic);
+    files.forEach((file) => formData.append("files", file));
+    formData.append("userId", userId);
+
+    const res = await axios.post("http://localhost:5000/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    console.log("✅ Server response:", res.data);
+
+    // ✅ Create one entry for this upload batch
+    const newWork = {
+      topic: topic || "Uploaded Files",
+      fileName: `${files.length} file(s)`,
+      date: new Date().toLocaleString(),
+      noteId: res.data.noteId, // single note ID now
+    };
+
+    // Add new upload entry to recent works
+    setRecentWorks([newWork, ...recentWorks]);
+
+    // Reset inputs
+    setTopic("");
+    setFiles([]);
+    document.querySelector('input[type="file"]').value = "";
+
+    alert(`${res.data.uploadedCount} file(s) uploaded and processed successfully!`);
+  } catch (error) {
+    console.error("❌ Upload error:", error);
+    alert("Upload failed! Check console for details.");
+  } finally {
+    setUploading(false);
+  }
+};
+
+
+
+  // 🧠 Handle AI Analysis (calls backend AI route)
+  const handleAnalyze = async () => {
+    if (recentWorks.length === 0) {
+      alert("Please upload a note first!");
       return;
     }
 
-    if (!userId) {
-      alert("User not found. Please log in again.");
-      return;
-    }
-
-    setUploading(true);
-
+    const lastNote = recentWorks[0];
+    setAnalyzing(true);
     try {
-      const formData = new FormData();
-      if (topic) formData.append("topic", topic);
-      if (file) formData.append("file", file);
-      formData.append("userId", userId);
-
-      console.log("📤 Sending request to backend...");
-
-      const res = await axios.post("http://localhost:5000/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const res = await axios.post("http://localhost:5000/analyze", {
+        noteId: lastNote.noteId,
+        userId,
       });
 
-      console.log("✅ Server response:", res.data);
-
-      const newWork = {
-        topic: topic || "Uploaded File",
-        fileName: file ? file.name : "N/A",
-        date: new Date().toLocaleString(),
-      };
-
-      setRecentWorks([newWork, ...recentWorks]);
-      setTopic("");
-      setFile(null);
-      
-      // Reset file input
-      const fileInput = document.querySelector('input[type="file"]');
-      if (fileInput) fileInput.value = '';
-
-      alert("Notes uploaded successfully!");
-      
+      console.log("🧠 AI Analysis Result:", res.data);
+      setAiResult(res.data);
     } catch (error) {
-      console.error("❌ Upload error:", error);
-      console.error("❌ Error response:", error.response);
-      
-      let errorMessage = "Upload failed: ";
-      
-      if (error.response) {
-        // Server responded with error
-        console.error("❌ Server error data:", error.response.data);
-        console.error("❌ Server error status:", error.response.status);
-        errorMessage += error.response.data?.message || error.response.data?.error || "Server error";
-        
-        if (error.response.data?.errorType) {
-          errorMessage += ` (${error.response.data.errorType})`;
-        }
-      } else if (error.request) {
-        // Request made but no response
-        console.error("❌ No response from server");
-        errorMessage += "No response from server. Is the backend running?";
-      } else {
-        // Something else happened
-        console.error("❌ Error setting up request:", error.message);
-        errorMessage += error.message;
-      }
-      
-      alert(errorMessage);
+      console.error("❌ AI Analysis Error:", error);
+      alert("Analysis failed! Check console.");
     } finally {
-      setUploading(false);
+      setAnalyzing(false);
     }
   };
 
@@ -123,7 +130,7 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <div className="main">
-        {/* Header */}
+        {/* Recent Work Section */}
         <div className="header">
           <h3>Recent Work</h3>
           <div className="recent-list">
@@ -147,15 +154,38 @@ const Dashboard = () => {
           <form onSubmit={handleUpload}>
             <input
               type="text"
-              placeholder="Enter Topic Name (optional if uploading file)"
+              placeholder="Enter Topic Name (optional if uploading files)"
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
             />
-            <input 
-              type="file" 
+            <input
+              type="file"
               onChange={handleFileChange}
               accept="image/*"
+              multiple
             />
+            
+            {/* Display selected files */}
+            {files.length > 0 && (
+              <div className="selected-files">
+                <h4>Selected Files ({files.length}):</h4>
+                <ul>
+                  {files.map((file, index) => (
+                    <li key={index}>
+                      {file.name}
+                      <button 
+                        type="button" 
+                        onClick={() => removeFile(index)}
+                        style={{ marginLeft: '10px', cursor: 'pointer' }}
+                      >
+                        ❌
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
             <button type="submit" disabled={uploading}>
               {uploading ? "Uploading..." : "Upload"}
             </button>

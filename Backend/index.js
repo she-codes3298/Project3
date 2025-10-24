@@ -2,7 +2,7 @@
 // IMPORTS
 // =======================
 require("dotenv").config();
-
+const aiRouter = require('./routes/ai');
 const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
@@ -14,6 +14,18 @@ const path = require("path");
 const OpenAI = require("openai");
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+
+// =======================
+// EXPRESS APP SETUP
+// =======================
+const app = express();
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// mount ai routes after app is defined
+app.use('/api/ai', aiRouter);
+
 // =======================
 // GOOGLE VISION SETUP
 // =======================
@@ -21,7 +33,14 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 // Path to service account key
 const keyPath = path.join(__dirname, "vision-key-user.json");
 
-// Load credentials securely
+// Ensure the key file exists before creating auth/client
+if (!fs.existsSync(keyPath)) {
+  console.error("❌ Google Vision key file not found at:", keyPath);
+  process.exit(1);
+} else {
+  console.log("✅ Vision key file found at:", keyPath);
+}
+
 const vision = require('@google-cloud/vision');
 const { GoogleAuth } = require('google-auth-library');
 
@@ -32,29 +51,6 @@ const auth = new GoogleAuth({
 
 const client = new vision.ImageAnnotatorClient({ auth });
 console.log("🔑 Google Vision auth initialized successfully");
-if (!fs.existsSync(keyPath)) {
-  console.error("❌ Google Vision key file not found at:", keyPath);
-  process.exit(1);
-} else {
-  console.log("✅ Vision key file found at:", keyPath);
-}
-
-// =======================
-// EXPRESS APP SETUP
-// =======================
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-const JWT_SECRET = "mysecretkey123";
-
-// Ensure uploads directory exists
-if (!fs.existsSync("uploads")) {
-  fs.mkdirSync("uploads");
-}
-
-// Configure multer for multiple files
-const upload = multer({ dest: "uploads/" });
 
 // =======================
 // DATABASE TABLE CREATION
@@ -91,6 +87,18 @@ pool
   .catch((err) => {
     console.error("❌ Error creating tables:", err);
   });
+
+// Add JWT secret and upload configuration
+// (ensures JWT_SECRET and `upload` are available where used)
+const JWT_SECRET = process.env.JWT_SECRET || "mysecretkey123";
+
+// Ensure uploads directory exists
+if (!fs.existsSync("uploads")) {
+  fs.mkdirSync("uploads");
+}
+
+// Configure multer for multiple files (limit 5)
+const upload = multer({ dest: "uploads/" });
 
 // =======================
 // ROUTES
@@ -230,13 +238,82 @@ app.post("/upload", upload.array("files", 5), async (req, res) => {
     const note = dbResult.rows[0];
     console.log("✅ Combined note saved to database:", note.id);
 
-    // 3️⃣ Respond to frontend
+    // 3️⃣ Send extracted text to OpenAI for confirmation
+    if (typeof fetch === "function") {
+      try {
+        const aiResponse = await fetch("http://localhost:5000/api/ai/send-content", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [combinedText],
+            prompt: "Please confirm that you received this extracted content.",
+          }),
+        });
+
+        // Robust parsing & logging
+        const contentType = aiResponse.headers.get?.("content-type") || "";
+        let aiData;
+        if (contentType.includes("application/json")) {
+          aiData = await aiResponse.json();
+        } else {
+          const textBody = await aiResponse.text();
+          try { aiData = JSON.parse(textBody); } catch { aiData = { text: textBody }; }
+        }
+
+        console.log("🤖 AI response status:", aiResponse.status, aiResponse.statusText);
+        console.log("🤖 AI response body:", aiData);
+
+        // Handle error-shaped responses (e.g. { error: 'OpenAI error', details: '...json...' })
+        let assistant = null;
+        if (aiData?.error) {
+          // Extract a useful error message
+          let errorMessage = typeof aiData.error === "string" ? aiData.error : (aiData.error.message || JSON.stringify(aiData.error));
+          if (aiData?.details && typeof aiData.details === "string") {
+            try {
+              const parsedDetails = JSON.parse(aiData.details);
+              const parsedMsg = parsedDetails?.error?.message || parsedDetails?.message;
+              if (parsedMsg) errorMessage = parsedMsg;
+              console.log("🤖 Parsed AI error details:", parsedDetails);
+            } catch (parseErr) {
+              // details wasn't JSON — keep as-is
+              errorMessage = aiData.details;
+            }
+          }
+          console.warn("⚠️ AI returned an error:", errorMessage);
+          assistant = `AI error: ${errorMessage}`; // fallback so assistant isn't undefined
+        } else {
+          // Try multiple common locations for assistant text
+          assistant =
+            aiData?.assistant ||
+            aiData?.message ||
+            aiData?.data ||
+            aiData?.result ||
+            (aiData?.choices && aiData.choices[0]?.message?.content) ||
+            (aiData?.choices && aiData.choices[0]?.text) ||
+            aiData?.text ||
+            null;
+        }
+
+        if (assistant) {
+          console.log("🤖 Assistant text:", assistant);
+        } else {
+          console.warn("⚠️ Assistant content not found in AI response. Check the full response above for structure.");
+        }
+      } catch (aiError) {
+        console.error("❌ Error sending content to AI:", aiError.message);
+      }
+    } else {
+      console.warn("⚠️ fetch is not available in this Node runtime — skipping AI forwarding step");
+    }
+
+    // 4️⃣ Send final response to frontend
     res.json({
       message: "Upload successful!",
-      uploadedCount: req.files.length,
+      uploadedCount: req.files ? req.files.length : 0,
       noteId: note.id,
       note,
     });
+
   } catch (error) {
     console.error("❌ Upload error:", error);
     res.status(500).json({ message: "Upload failed", error: error.message });
@@ -250,8 +327,6 @@ app.post("/upload", upload.array("files", 5), async (req, res) => {
     });
   }
 });
-
-
 
 // -----------------------
 // FETCH NOTES
@@ -276,5 +351,7 @@ app.get("/notes/:userId", async (req, res) => {
 app.listen(5000, () => {
   console.log("🚀 Server running on port 5000");
   console.log("🔑 Google Vision credentials loaded from:", keyPath);
-  console.log("📸 Multiple file upload enabled (max 10 files per request)");
+  console.log("📸 Multiple file upload enabled (max 5 files per request)");
 });
+
+module.exports = app;
