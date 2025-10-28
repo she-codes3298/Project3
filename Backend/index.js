@@ -74,6 +74,30 @@ const createNotesTable = `
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 `;
+const createTableSpaced_repetition=`CREATE TABLE IF NOT EXISTS spaced_repetition (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id) ON DELETE CASCADE,
+  note_id INT REFERENCES notes(id) ON DELETE CASCADE,
+  topic VARCHAR(255) NOT NULL,
+  difficulty_level INT CHECK (difficulty_level BETWEEN 1 AND 5),
+  ease_factor DECIMAL(3,2) DEFAULT 2.5,
+  repetition_count INT DEFAULT 0,
+  interval_days INT DEFAULT 1,
+  last_reviewed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  next_review_date TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(user_id, note_id)
+);`;
+const createTable_explain=`CREATE TABLE IF NOT EXISTS explanation_history (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id) ON DELETE CASCADE,
+  note_id INT REFERENCES notes(id) ON DELETE CASCADE,
+  topic VARCHAR(255) NOT NULL,
+  user_explanation TEXT NOT NULL,
+  ai_feedback JSONB NOT NULL,
+  understanding_score INT CHECK (understanding_score BETWEEN 0 AND 100),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`;
 
 pool
   .query(createUserTable)
@@ -83,6 +107,14 @@ pool
   })
   .then(() => {
     console.log("✅ Notes table ready");
+    return pool.query(createTableSpaced_repetition);
+  })
+   .then(() => {
+    console.log("✅Spaced_repetition table is ready");
+    return pool.query(createTable_explain);
+  })
+   .then(() => {
+    console.log("✅ explain table is ready");
   })
   .catch((err) => {
     console.error("❌ Error creating tables:", err);
@@ -103,6 +135,50 @@ const upload = multer({ dest: "uploads/" });
 // =======================
 // ROUTES
 // =======================
+function calculateNextReview(difficultyLevel, repetitionCount, easeFactor) {
+  // SM-2 Algorithm inspired intervals
+  let intervalDays;
+  
+  if (repetitionCount === 0) {
+    // First review
+    intervalDays = 1;
+  } else if (repetitionCount === 1) {
+    // Second review
+    intervalDays = difficultyLevel <= 3 ? 3 : 1;
+  } else {
+    // Subsequent reviews - exponential growth
+    const baseInterval = repetitionCount === 2 ? 7 : Math.pow(easeFactor, repetitionCount - 2) * 7;
+    
+    // Adjust based on difficulty
+    const difficultyMultiplier = {
+      1: 2.5,   // Very Easy - longer intervals
+      2: 2.0,   // Easy
+      3: 1.5,   // Medium
+      4: 1.0,   // Hard
+      5: 0.5    // Very Hard - shorter intervals
+    }[difficultyLevel] || 1.0;
+    
+    intervalDays = Math.round(baseInterval * difficultyMultiplier);
+  }
+  
+  // Calculate new ease factor
+  let newEaseFactor = easeFactor;
+  if (difficultyLevel <= 2) {
+    newEaseFactor = Math.min(easeFactor + 0.1, 3.0); // Increase ease
+  } else if (difficultyLevel >= 4) {
+    newEaseFactor = Math.max(easeFactor - 0.2, 1.3); // Decrease ease
+  }
+  
+  // Calculate next review date
+  const nextReviewDate = new Date();
+  nextReviewDate.setDate(nextReviewDate.getDate() + intervalDays);
+  
+  return {
+    intervalDays,
+    newEaseFactor,
+    nextReviewDate: nextReviewDate.toISOString()
+  };
+}
 
 // Test Route
 app.get("/test", (req, res) => {
@@ -342,6 +418,261 @@ app.get("/notes/:userId", async (req, res) => {
   } catch (error) {
     console.error("❌ Error fetching notes:", error);
     res.status(500).json({ message: "Error fetching notes", error: error.message });
+  }
+});
+app.post("/api/spaced-repetition/review", async (req, res) => {
+  console.log("📅 Spaced repetition review request:", req.body);
+  
+  const { userId, noteId, topic, difficultyLevel } = req.body;
+  
+  if (!userId || !noteId || !difficultyLevel) {
+    return res.status(400).json({ 
+      message: "userId, noteId, and difficultyLevel are required" 
+    });
+  }
+  
+  if (difficultyLevel < 1 || difficultyLevel > 5) {
+    return res.status(400).json({ 
+      message: "difficultyLevel must be between 1 and 5" 
+    });
+  }
+  
+  try {
+    // Check if review already exists
+    const existingReview = await pool.query(
+      "SELECT * FROM spaced_repetition WHERE user_id = $1 AND note_id = $2",
+      [userId, noteId]
+    );
+    
+    let result;
+    
+    if (existingReview.rows.length > 0) {
+      // Update existing review
+      const review = existingReview.rows[0];
+      const { intervalDays, newEaseFactor, nextReviewDate } = calculateNextReview(
+        difficultyLevel,
+        review.repetition_count + 1,
+        review.ease_factor
+      );
+      
+      result = await pool.query(
+        `UPDATE spaced_repetition 
+         SET difficulty_level = $1,
+             ease_factor = $2,
+             repetition_count = repetition_count + 1,
+             interval_days = $3,
+             last_reviewed = CURRENT_TIMESTAMP,
+             next_review_date = $4
+         WHERE user_id = $5 AND note_id = $6
+         RETURNING *`,
+        [difficultyLevel, newEaseFactor, intervalDays, nextReviewDate, userId, noteId]
+      );
+      
+      console.log("✅ Updated existing review schedule");
+    } else {
+      // Create new review schedule
+      const { intervalDays, newEaseFactor, nextReviewDate } = calculateNextReview(
+        difficultyLevel,
+        0,
+        2.5 // Default ease factor
+      );
+      
+      result = await pool.query(
+        `INSERT INTO spaced_repetition 
+         (user_id, note_id, topic, difficulty_level, ease_factor, repetition_count, interval_days, next_review_date)
+         VALUES ($1, $2, $3, $4, $5, 1, $6, $7)
+         RETURNING *`,
+        [userId, noteId, topic, difficultyLevel, newEaseFactor, intervalDays, nextReviewDate]
+      );
+      
+      console.log("✅ Created new review schedule");
+    }
+    
+    const review = result.rows[0];
+    
+    res.json({
+      message: "Review scheduled successfully",
+      intervalDays: review.interval_days,
+      nextReview: review.next_review_date,
+      repetitionCount: review.repetition_count,
+      easeFactor: review.ease_factor
+    });
+    
+  } catch (error) {
+    console.error("❌ Error scheduling review:", error);
+    res.status(500).json({ 
+      message: "Error scheduling review", 
+      error: error.message 
+    });
+  }
+});
+
+// -----------------------
+// GET: Fetch Due Reviews
+// -----------------------
+app.get("/api/spaced-repetition/due/:userId", async (req, res) => {
+  const { userId } = req.params;
+  
+  try {
+    const result = await pool.query(
+      `SELECT sr.*, n.content 
+       FROM spaced_repetition sr
+       JOIN notes n ON sr.note_id = n.id
+       WHERE sr.user_id = $1 
+       AND sr.next_review_date <= CURRENT_TIMESTAMP
+       ORDER BY sr.next_review_date ASC`,
+      [userId]
+    );
+    
+    console.log(`📚 Found ${result.rows.length} due reviews for user ${userId}`);
+    
+    res.json({
+      count: result.rows.length,
+      dueReviews: result.rows
+    });
+    
+  } catch (error) {
+    console.error("❌ Error fetching due reviews:", error);
+    res.status(500).json({ 
+      message: "Error fetching due reviews", 
+      error: error.message 
+    });
+  }
+});
+
+// -----------------------
+// GET: Fetch Scheduled Reviews
+// -----------------------
+app.get("/api/spaced-repetition/scheduled/:userId", async (req, res) => {
+  const { userId } = req.params;
+  
+  try {
+    const result = await pool.query(
+      `SELECT sr.*, n.content 
+       FROM spaced_repetition sr
+       JOIN notes n ON sr.note_id = n.id
+       WHERE sr.user_id = $1
+       ORDER BY sr.next_review_date ASC`,
+      [userId]
+    );
+    
+    console.log(`📅 Found ${result.rows.length} scheduled reviews for user ${userId}`);
+    
+    res.json({
+      count: result.rows.length,
+      scheduledReviews: result.rows
+    });
+    
+  } catch (error) {
+    console.error("❌ Error fetching scheduled reviews:", error);
+    res.status(500).json({ 
+      message: "Error fetching scheduled reviews", 
+      error: error.message 
+    });
+  }
+});
+
+// -----------------------
+// DELETE: Remove Review Schedule
+// -----------------------
+app.delete("/api/spaced-repetition/:userId/:noteId", async (req, res) => {
+  const { userId, noteId } = req.params;
+  
+  try {
+    const result = await pool.query(
+      "DELETE FROM spaced_repetition WHERE user_id = $1 AND note_id = $2 RETURNING *",
+      [userId, noteId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Review schedule not found" });
+    }
+    
+    console.log(`🗑️ Deleted review schedule for note ${noteId}`);
+    
+    res.json({
+      message: "Review schedule deleted successfully",
+      deletedReview: result.rows[0]
+    });
+    
+  } catch (error) {
+    console.error("❌ Error deleting review schedule:", error);
+    res.status(500).json({ 
+      message: "Error deleting review schedule", 
+      error: error.message 
+    });
+  }
+});
+
+// -----------------------
+// POST: Save Explanation History
+// -----------------------
+app.post("/api/explanation-history/save", async (req, res) => {
+  console.log("💾 Saving explanation history:", req.body);
+  
+  const { userId, noteId, topic, userExplanation, aiFeedback, understandingScore } = req.body;
+  
+  if (!userId || !noteId || !userExplanation || !aiFeedback) {
+    return res.status(400).json({ 
+      message: "userId, noteId, userExplanation, and aiFeedback are required" 
+    });
+  }
+  
+  try {
+    const result = await pool.query(
+      `INSERT INTO explanation_history 
+       (user_id, note_id, topic, user_explanation, ai_feedback, understanding_score)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [userId, noteId, topic, userExplanation, JSON.stringify(aiFeedback), understandingScore]
+    );
+    
+    console.log("✅ Explanation history saved successfully");
+    
+    res.json({
+      message: "Explanation saved successfully",
+      history: result.rows[0]
+    });
+    
+  } catch (error) {
+    console.error("❌ Error saving explanation history:", error);
+    res.status(500).json({ 
+      message: "Error saving explanation history", 
+      error: error.message 
+    });
+  }
+});
+
+// -----------------------
+// GET: Fetch Explanation History
+// -----------------------
+app.get("/api/explanation-history/:userId", async (req, res) => {
+  const { userId } = req.params;
+  
+  try {
+    const result = await pool.query(
+      `SELECT eh.*, n.topic as note_topic
+       FROM explanation_history eh
+       JOIN notes n ON eh.note_id = n.id
+       WHERE eh.user_id = $1
+       ORDER BY eh.created_at DESC
+       LIMIT 50`,
+      [userId]
+    );
+    
+    console.log(`📜 Found ${result.rows.length} explanation history records for user ${userId}`);
+    
+    res.json({
+      count: result.rows.length,
+      history: result.rows
+    });
+    
+  } catch (error) {
+    console.error("❌ Error fetching explanation history:", error);
+    res.status(500).json({ 
+      message: "Error fetching explanation history", 
+      error: error.message 
+    });
   }
 });
 
