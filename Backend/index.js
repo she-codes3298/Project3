@@ -120,62 +120,94 @@ pool
     console.error("❌ Error creating tables:", err);
   });
 
-// Add JWT secret and upload configuration
-// (ensures JWT_SECRET and `upload` are available where used)
 const JWT_SECRET = process.env.JWT_SECRET || "mysecretkey123";
 
-// Ensure uploads directory exists
+
 if (!fs.existsSync("uploads")) {
   fs.mkdirSync("uploads");
 }
 
-// Configure multer for multiple files (limit 5)
+
 const upload = multer({ dest: "uploads/" });
 
-// =======================
-// ROUTES
-// =======================
 function calculateNextReview(difficultyLevel, repetitionCount, easeFactor) {
-  // SM-2 Algorithm inspired intervals
   let intervalDays;
+  let newEaseFactor = easeFactor;
+  
+ 
   
   if (repetitionCount === 0) {
-    // First review
-    intervalDays = 1;
-  } else if (repetitionCount === 1) {
-    // Second review
-    intervalDays = difficultyLevel <= 3 ? 3 : 1;
-  } else {
-    // Subsequent reviews - exponential growth
-    const baseInterval = repetitionCount === 2 ? 7 : Math.pow(easeFactor, repetitionCount - 2) * 7;
     
-    // Adjust based on difficulty
+    const initialIntervals = {
+      1: 7,   
+      2: 5,   
+      3: 3,   
+      4: 2,   
+      5: 1    
+    };
+    intervalDays = initialIntervals[difficultyLevel] || 3;
+    
+  } else if (repetitionCount === 1) {
+    
+    const secondIntervals = {
+      1: 14,  
+      2: 10,  
+      3: 7,   
+      4: 3,   
+      5: 2    
+    };
+    intervalDays = secondIntervals[difficultyLevel] || 7;
+    
+  } else {
+    
+    const baseInterval = Math.pow(easeFactor, repetitionCount - 1) * 7;
+    
+    
     const difficultyMultiplier = {
-      1: 2.5,   // Very Easy - longer intervals
-      2: 2.0,   // Easy
-      3: 1.5,   // Medium
-      4: 1.0,   // Hard
-      5: 0.5    // Very Hard - shorter intervals
-    }[difficultyLevel] || 1.0;
+      1: 2.5,   
+      2: 2.0,   
+      3: 1.5,   
+      4: 1.0,   
+      5: 0.6    
+    }[difficultyLevel] || 1.5;
     
     intervalDays = Math.round(baseInterval * difficultyMultiplier);
   }
   
-  // Calculate new ease factor
-  let newEaseFactor = easeFactor;
-  if (difficultyLevel <= 2) {
-    newEaseFactor = Math.min(easeFactor + 0.1, 3.0); // Increase ease
-  } else if (difficultyLevel >= 4) {
-    newEaseFactor = Math.max(easeFactor - 0.2, 1.3); // Decrease ease
+  
+  if (difficultyLevel === 1) {
+    newEaseFactor = Math.min(easeFactor + 0.15, 3.0);
+  } else if (difficultyLevel === 2) {
+    newEaseFactor = Math.min(easeFactor + 0.1, 2.8);
+  } 
+  
+  else if (difficultyLevel === 3) {
+    newEaseFactor = easeFactor;
   }
   
-  // Calculate next review date
+  else if (difficultyLevel === 4) {
+    newEaseFactor = Math.max(easeFactor - 0.15, 1.3);
+  } else if (difficultyLevel === 5) {
+    newEaseFactor = Math.max(easeFactor - 0.2, 1.3);
+  }
+  
+
+  
+  
+  intervalDays = Math.max(1, intervalDays);
+  
+  
+  intervalDays = Math.min(intervalDays, 365);
+  
+  
   const nextReviewDate = new Date();
   nextReviewDate.setDate(nextReviewDate.getDate() + intervalDays);
   
+  console.log(`📊 Calculated review: Difficulty=${difficultyLevel}, Rep=${repetitionCount}, Interval=${intervalDays}d, EaseFactor=${newEaseFactor.toFixed(2)}`);
+  
   return {
     intervalDays,
-    newEaseFactor,
+    newEaseFactor: parseFloat(newEaseFactor.toFixed(2)),
     nextReviewDate: nextReviewDate.toISOString()
   };
 }
@@ -420,11 +452,14 @@ app.get("/notes/:userId", async (req, res) => {
     res.status(500).json({ message: "Error fetching notes", error: error.message });
   }
 });
+// POST: Schedule/Update Review
+// ===================================
 app.post("/api/spaced-repetition/review", async (req, res) => {
   console.log("📅 Spaced repetition review request:", req.body);
   
   const { userId, noteId, topic, difficultyLevel } = req.body;
   
+  // Validation
   if (!userId || !noteId || !difficultyLevel) {
     return res.status(400).json({ 
       message: "userId, noteId, and difficultyLevel are required" 
@@ -447,12 +482,16 @@ app.post("/api/spaced-repetition/review", async (req, res) => {
     let result;
     
     if (existingReview.rows.length > 0) {
-      // Update existing review
+      // ===================================
+      // UPDATE EXISTING REVIEW
+      // ===================================
       const review = existingReview.rows[0];
+      
+      // Calculate next interval based on NEW difficulty level and CURRENT repetition count
       const { intervalDays, newEaseFactor, nextReviewDate } = calculateNextReview(
         difficultyLevel,
-        review.repetition_count + 1,
-        review.ease_factor
+        review.repetition_count,  // Current count (will be incremented in DB)
+        parseFloat(review.ease_factor)
       );
       
       result = await pool.query(
@@ -469,12 +508,15 @@ app.post("/api/spaced-repetition/review", async (req, res) => {
       );
       
       console.log("✅ Updated existing review schedule");
+      
     } else {
-      // Create new review schedule
+      // ===================================
+      // CREATE NEW REVIEW SCHEDULE
+      // ===================================
       const { intervalDays, newEaseFactor, nextReviewDate } = calculateNextReview(
         difficultyLevel,
-        0,
-        2.5 // Default ease factor
+        0,  // First review
+        2.5 // Default starting ease factor
       );
       
       result = await pool.query(
@@ -490,12 +532,15 @@ app.post("/api/spaced-repetition/review", async (req, res) => {
     
     const review = result.rows[0];
     
+    // Send response with clear information
     res.json({
       message: "Review scheduled successfully",
       intervalDays: review.interval_days,
       nextReview: review.next_review_date,
+      nextReviewFormatted: new Date(review.next_review_date).toLocaleDateString(),
       repetitionCount: review.repetition_count,
-      easeFactor: review.ease_factor
+      easeFactor: review.ease_factor,
+      difficultyLevel: review.difficulty_level
     });
     
   } catch (error) {

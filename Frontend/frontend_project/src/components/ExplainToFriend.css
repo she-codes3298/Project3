@@ -1,13 +1,16 @@
 /* ExplainToFriend.css - Basic Styles */
 
 .explain-container {
-  min-height: 100vh;
+  max-width:100%;
+  /*min-height: 100vh;*/
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
   color: #333;
+  overflow-y: auto;
 }
 
 .explain-header {
+  max-width: 100%;
   background: white;
   padding: 20px;
   border-radius: 12px;

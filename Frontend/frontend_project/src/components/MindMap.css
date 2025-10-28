@@ -1,11 +1,14 @@
 .mindmap-container {
-  min-height: 100vh;
+  max-width:100%;
+  /*min-height: 100vh;*/
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow-y: auto;
 }
 
 .mindmap-header {
+  max-width:100%;
   background: rgba(255, 255, 255, 0.95);
   padding: 20px 30px;
   border-radius: 15px;
