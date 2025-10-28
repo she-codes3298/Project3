@@ -1,0 +1,17 @@
+/* index.css */
+
+:root {
+  --primary-color: #000080;
+  --secondary-color: #00FFFF;
+  --dark-background: #000000;
+  --text-color: #FFFFFF;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--dark-background);
+  color: var(--text-color);
+}

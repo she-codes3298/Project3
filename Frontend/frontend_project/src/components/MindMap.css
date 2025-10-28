@@ -1,15 +1,17 @@
+/* MindMap.css - Dark Theme */
+
 .mindmap-container {
   max-width:100%;
-  /*min-height: 100vh;*/
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--dark-background);
   padding: 20px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   overflow-y: auto;
+  color: var(--text-color);
 }
 
 .mindmap-header {
   max-width:100%;
-  background: rgba(255, 255, 255, 0.95);
+  background: #000010;
   padding: 20px 30px;
   border-radius: 15px;
   margin-bottom: 20px;
@@ -18,7 +20,7 @@
 
 .mindmap-header h2 {
   margin: 0 0 10px 0;
-  color: #333;
+  color: var(--text-color);
   font-size: 28px;
 }
 
@@ -30,14 +32,14 @@
 }
 
 .hint {
-  color: #666;
+  color: #CCCCCC;
   font-size: 14px;
   margin: 0;
   font-style: italic;
 }
 
 .download-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--primary-color);
   color: white;
   border: none;
   padding: 10px 20px;
@@ -49,13 +51,14 @@
 
 .download-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
+  box-shadow: 0 5px 15px rgba(0, 255, 255, 0.4);
+  background: #0000B0;
 }
 
 .back-btn {
   background: transparent;
-  border: 2px solid #667eea;
-  color: #667eea;
+  border: 2px solid var(--secondary-color);
+  color: var(--secondary-color);
   padding: 8px 16px;
   border-radius: 8px;
   font-weight: bold;
@@ -65,12 +68,12 @@
 }
 
 .back-btn:hover {
-  background: #667eea;
-  color: white;
+  background: var(--secondary-color);
+  color: #000000;
 }
 
 .mindmap-canvas {
-  background: white;
+  background: #000010;
   border-radius: 15px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   overflow: hidden;
@@ -99,10 +102,12 @@
 
 .node text {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  fill: var(--text-color);
 }
 
 .link {
   transition: stroke-width 0.3s ease;
+  stroke: var(--secondary-color);
 }
 
 .mindmap-legend {
@@ -111,7 +116,7 @@
   justify-content: center;
   margin-top: 20px;
   padding: 15px;
-  background: rgba(255, 255, 255, 0.95);
+  background: #000010;
   border-radius: 10px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
@@ -121,21 +126,21 @@
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: #333;
+  color: var(--text-color);
 }
 
 .legend-color {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 2px solid white;
+  border: 2px solid #000000;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .loading, .error {
   text-align: center;
   padding: 50px;
-  background: rgba(255, 255, 255, 0.95);
+  background: #000010;
   border-radius: 15px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   margin: 50px auto;
@@ -143,18 +148,18 @@
 }
 
 .loading h2, .error h2 {
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 15px;
 }
 
 .loading p, .error p {
-  color: #666;
+  color: #CCCCCC;
   margin-bottom: 20px;
 }
 
 .spinner {
-  border: 4px solid rgba(118, 75, 162, 0.2);
-  border-top: 4px solid #764ba2;
+  border: 4px solid rgba(0, 255, 255, 0.2);
+  border-top: 4px solid var(--secondary-color);
   border-radius: 50%;
   width: 50px;
   height: 50px;
@@ -168,7 +173,7 @@
 }
 
 .error button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--primary-color);
   color: white;
   border: none;
   padding: 12px 30px;
@@ -180,6 +185,7 @@
 
 .error button:hover {
   transform: translateY(-2px);
+  background: #0000B0;
 }
 
 /* Responsive design */

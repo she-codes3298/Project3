@@ -1,17 +1,16 @@
-/* ExplainToFriend.css - Basic Styles */
+/* ExplainToFriend.css - Dark Theme */
 
 .explain-container {
   max-width:100%;
-  /*min-height: 100vh;*/
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--dark-background);
   padding: 20px;
-  color: #333;
+  color: var(--text-color);
   overflow-y: auto;
 }
 
 .explain-header {
   max-width: 100%;
-  background: white;
+  background: #000010;
   padding: 20px;
   border-radius: 12px;
   margin-bottom: 20px;
@@ -19,7 +18,7 @@
 }
 
 .back-btn {
-  background: #667eea;
+  background: var(--primary-color);
   color: white;
   border: none;
   padding: 10px 20px;
@@ -30,22 +29,22 @@
 }
 
 .back-btn:hover {
-  background: #5568d3;
+  background: #0000B0;
 }
 
 .explain-title {
   margin: 10px 0;
-  color: #333;
+  color: var(--text-color);
   font-size: 28px;
 }
 
 .explain-subtitle {
-  color: #666;
+  color: #CCCCCC;
   font-size: 16px;
 }
 
 .loading {
-  background: white;
+  background: #000010;
   padding: 40px;
   border-radius: 12px;
   text-align: center;
@@ -54,8 +53,8 @@
 }
 
 .spinner {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #667eea;
+  border: 4px solid #333333;
+  border-top: 4px solid var(--secondary-color);
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -69,7 +68,7 @@
 }
 
 .error-state {
-  background: white;
+  background: #000010;
   padding: 40px;
   border-radius: 12px;
   text-align: center;
@@ -84,12 +83,12 @@
   border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
-  background: #667eea;
+  background: var(--primary-color);
   color: white;
 }
 
 .tips-card {
-  background: white;
+  background: #000010;
   padding: 20px;
   border-radius: 12px;
   margin-bottom: 20px;
@@ -118,11 +117,11 @@
 
 .tips-card li {
   padding: 8px 0;
-  color: #555;
+  color: #CCCCCC;
 }
 
 .explanation-box {
-  background: white;
+  background: #000010;
   padding: 20px;
   border-radius: 12px;
   margin-bottom: 20px;
@@ -133,23 +132,25 @@
   display: block;
   font-weight: bold;
   margin-bottom: 10px;
-  color: #333;
+  color: var(--text-color);
 }
 
 .explanation-box textarea {
   width: 100%;
   padding: 15px;
-  border: 2px solid #ddd;
+  border: 2px solid var(--secondary-color);
   border-radius: 8px;
   font-size: 16px;
   font-family: inherit;
   resize: vertical;
   min-height: 200px;
+  background-color: #000020;
+  color: var(--text-color);
 }
 
 .explanation-box textarea:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--secondary-color);
 }
 
 .char-counter {
@@ -169,7 +170,7 @@
 }
 
 .submit-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--primary-color);
   color: white;
   border: none;
   padding: 15px 40px;
@@ -186,6 +187,7 @@
 .submit-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  background: #0000B0;
 }
 
 .submit-btn:disabled {
@@ -194,7 +196,7 @@
 }
 
 .feedback-container {
-  background: white;
+  background: #000010;
   padding: 30px;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -207,7 +209,7 @@
 
 .main-score {
   display: inline-block;
-  border: 5px solid;
+  border: 5px solid var(--secondary-color);
   border-radius: 50%;
   width: 150px;
   height: 150px;
@@ -221,11 +223,12 @@
 .score-value {
   font-size: 48px;
   font-weight: bold;
+  color: var(--text-color);
 }
 
 .score-label {
   font-size: 16px;
-  color: #666;
+  color: #CCCCCC;
 }
 
 .sub-scores {
@@ -236,7 +239,7 @@
 }
 
 .sub-score {
-  background: #f8f9fa;
+  background: #000020;
   padding: 15px;
   border-radius: 8px;
 }
@@ -245,12 +248,12 @@
   display: block;
   font-weight: bold;
   margin-bottom: 8px;
-  color: #333;
+  color: var(--text-color);
 }
 
 .score-bar {
   height: 10px;
-  background: #e0e0e0;
+  background: #333333;
   border-radius: 5px;
   overflow: hidden;
   margin-bottom: 5px;
@@ -259,24 +262,25 @@
 .score-fill {
   height: 100%;
   transition: width 0.3s ease;
+  background-color: var(--secondary-color);
 }
 
 .sub-score-value {
   font-size: 14px;
-  color: #666;
+  color: #CCCCCC;
 }
 
 .encouragement-card {
-  background: #f0f7ff;
+  background: #000020;
   padding: 20px;
   border-radius: 8px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--secondary-color);
   margin-bottom: 20px;
 }
 
 .encouragement-card h3 {
   margin-top: 0;
-  color: #667eea;
+  color: var(--secondary-color);
 }
 
 .feedback-grid {
@@ -292,17 +296,18 @@
 }
 
 .feedback-section.strengths {
-  background: #e8f5e9;
+  background: #002000;
   border-left: 4px solid #4caf50;
 }
 
 .feedback-section.improvements {
-  background: #fff3e0;
+  background: #202000;
   border-left: 4px solid #ff9800;
 }
 
 .feedback-section h3 {
   margin-top: 0;
+  color: var(--text-color);
 }
 
 .feedback-section ul {
@@ -311,7 +316,7 @@
 
 .feedback-section li {
   margin-bottom: 8px;
-  color: #555;
+  color: #CCCCCC;
 }
 
 .concepts-grid {
@@ -324,11 +329,12 @@
 .concepts-section {
   padding: 20px;
   border-radius: 8px;
-  background: #f8f9fa;
+  background: #000020;
 }
 
 .concepts-section h3 {
   margin-top: 0;
+  color: var(--text-color);
 }
 
 .concept-tags {
@@ -355,7 +361,7 @@
 }
 
 .analogy-feedback {
-  background: #f3e5f5;
+  background: #200020;
   padding: 20px;
   border-radius: 8px;
   border-left: 4px solid #9c27b0;
@@ -363,7 +369,7 @@
 }
 
 .next-steps {
-  background: #e3f2fd;
+  background: #000020;
   padding: 20px;
   border-radius: 8px;
   border-left: 4px solid #2196f3;
@@ -376,7 +382,7 @@
 
 .next-steps li {
   margin-bottom: 10px;
-  color: #555;
+  color: #CCCCCC;
 }
 
 .action-buttons {
@@ -410,4 +416,18 @@
 .done-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 768px) {
+  .explain-container {
+    padding: 10px;
+  }
+
+  .explain-header, .tips-card, .explanation-box, .feedback-container {
+    padding: 15px;
+  }
+
+  .explain-title {
+    font-size: 22px;
+  }
 }
