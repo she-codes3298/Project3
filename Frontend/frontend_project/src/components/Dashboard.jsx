@@ -12,8 +12,9 @@ const Dashboard = () => {
   const [uploading, setUploading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [aiResult, setAiResult] = useState(null);
-  const [currentNoteId, setCurrentNoteId] = useState(null); // ✅ Track current note
+  const [currentNoteId, setCurrentNoteId] = useState(null);
   const [dueReviewsCount, setDueReviewsCount] = useState(0);
+  const [showLibrary, setShowLibrary] = useState(false); // Toggle for library dropdown
 
   const navigate = useNavigate();
 
@@ -40,7 +41,6 @@ const Dashboard = () => {
       } catch (_) { /* ignore parse errors */ }
     }
 
-
     const fetchNotes = async () => {
       try {
         const res = await axios.get(`http://localhost:5000/notes/${userId}`);
@@ -60,6 +60,24 @@ const Dashboard = () => {
     };
 
     fetchNotes();
+
+    // Restore currentNoteId and aiResult from sessionStorage on mount
+    const savedNoteId = sessionStorage.getItem(`currentNoteId_${userId}`);
+    const savedAiResult = sessionStorage.getItem(`aiResult_${userId}`);
+    
+    if (savedNoteId) {
+      setCurrentNoteId(parseInt(savedNoteId));
+      console.log("✅ Restored currentNoteId:", savedNoteId);
+    }
+    
+    if (savedAiResult) {
+      try {
+        setAiResult(JSON.parse(savedAiResult));
+        console.log("✅ Restored aiResult from session");
+      } catch (err) {
+        console.error("❌ Error parsing saved aiResult:", err);
+      }
+    }
   }, [userId]);
 
   useEffect(() => {
@@ -68,26 +86,47 @@ const Dashboard = () => {
     localStorage.setItem(storageKey, JSON.stringify(recentWorks));
   }, [recentWorks, userId]);
 
+  // Save currentNoteId and aiResult to sessionStorage whenever they change
+  useEffect(() => {
+    if (!userId) return;
+    
+    if (currentNoteId) {
+      sessionStorage.setItem(`currentNoteId_${userId}`, currentNoteId.toString());
+    } else {
+      sessionStorage.removeItem(`currentNoteId_${userId}`);
+    }
+  }, [currentNoteId, userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    
+    if (aiResult) {
+      sessionStorage.setItem(`aiResult_${userId}`, JSON.stringify(aiResult));
+    } else {
+      sessionStorage.removeItem(`aiResult_${userId}`);
+    }
+  }, [aiResult, userId]);
+
   const removeFile = (index) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
   };
+
   useEffect(() => {
-  if (!userId) return;
+    if (!userId) return;
 
-  const fetchDueCount = async () => {
-    try {
-      const res = await axios.get(`http://localhost:5000/api/spaced-repetition/due/${userId}`);
-      setDueReviewsCount(res.data.count || 0);
-    } catch (err) {
-      console.error("❌ Error fetching due reviews:", err);
-    }
-  };
+    const fetchDueCount = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/api/spaced-repetition/due/${userId}`);
+        setDueReviewsCount(res.data.count || 0);
+      } catch (err) {
+        console.error("❌ Error fetching due reviews:", err);
+      }
+    };
 
-  fetchDueCount();
-  // Refresh count every minute
-  const interval = setInterval(fetchDueCount, 60000);
-  return () => clearInterval(interval);
-}, [userId]);
+    fetchDueCount();
+    const interval = setInterval(fetchDueCount, 60000);
+    return () => clearInterval(interval);
+  }, [userId]);
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
@@ -98,7 +137,7 @@ const Dashboard = () => {
     }
 
     setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
-    console.log("📎 Files selected:", selectedFiles.length);
+    console.log("🔎 Files selected:", selectedFiles.length);
   };
 
   const handleUpload = async (e) => {
@@ -115,7 +154,8 @@ const Dashboard = () => {
     }
 
     setUploading(true);
-    setAiResult(null); // ✅ Clear previous results
+    setAiResult(null);
+    setCurrentNoteId(null);
 
     try {
       const formData = new FormData();
@@ -137,7 +177,6 @@ const Dashboard = () => {
         content: res.data.note?.content || "",
       };
 
-      // ✅ Set current note ID
       setCurrentNoteId(res.data.noteId);
 
       setRecentWorks((prev) => {
@@ -161,24 +200,22 @@ const Dashboard = () => {
   };
 
   const handleAnalyze = async () => {
-    if (!currentNoteId && recentWorks.length === 0) {
-      alert("Please upload a note first!");
+    if (!currentNoteId) {
+      alert("Please upload a note first before analyzing!");
       return;
     }
 
-    // ✅ Use currentNoteId if available, otherwise use most recent
-    const noteIdToAnalyze = currentNoteId || recentWorks[0]?.noteId;
+    const lastNote = recentWorks.find(work => work.noteId === currentNoteId);
     
-    if (!noteIdToAnalyze) {
-      alert("No note available to analyze.");
+    if (!lastNote) {
+      alert("Note not found. Please upload again.");
       return;
     }
 
-    const lastNote = recentWorks.find(work => work.noteId === noteIdToAnalyze) || recentWorks[0];
     const contentToSend = lastNote.content || "";
     
-    if (!contentToSend) {
-      alert("No content available to analyze.");
+    if (!contentToSend || contentToSend.trim().length === 0) {
+      alert("No content available to analyze. Please ensure your upload contains text.");
       return;
     }
 
@@ -191,7 +228,6 @@ const Dashboard = () => {
 
       console.log("🧠 AI Analysis Result:", res.data);
       setAiResult(res.data);
-      setCurrentNoteId(noteIdToAnalyze); // ✅ Ensure we track this note
     } catch (error) {
       console.error("❌ AI Analysis Error:", error);
       alert("Analysis failed! " + (error.response?.data?.error || error.message));
@@ -200,14 +236,13 @@ const Dashboard = () => {
     }
   };
 
- const handleGenerate = (mode) => {
-  if (!currentNoteId) {
-    alert("Please upload and analyze a note first!");
-    return;
-  }
-  // ✅ Navigate with noteId as query parameter
-  navigate(`/${mode}?noteId=${currentNoteId}`);
-};
+  const handleGenerate = (mode) => {
+    if (!currentNoteId) {
+      alert("Please upload and analyze a note first!");
+      return;
+    }
+    navigate(`/${mode}?noteId=${currentNoteId}`);
+  };
 
   return (
     <div className="dashboard">
@@ -216,56 +251,91 @@ const Dashboard = () => {
         <h2 className="logo">ToteLearning</h2>
         <ul>
           <li>🏠 Home</li>
-          <li>📚 Your Library</li>
           <li 
-      onClick={() => navigate("/spaced-repetition")}
-      style={{ cursor: "pointer", position: "relative" }}
-    >
-      🔁 Spaced Repetition
-      {dueReviewsCount > 0 && (
-        <span style={{
-          position: "absolute",
-          top: "5px",
-          right: "10px",
-          background: "#f44336",
-          color: "white",
-          borderRadius: "50%",
-          width: "24px",
-          height: "24px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "0.75rem",
-          fontWeight: "bold"
-        }}>
-          {dueReviewsCount}
-        </span>
-      )}
-    </li>
+            onClick={() => setShowLibrary(!showLibrary)}
+            style={{ cursor: "pointer" }}
+          >
+            📚 Your Library {showLibrary ? "▼" : "▶"}
+          </li>
+          
+          {/* Library Dropdown with Recent Works */}
+          {showLibrary && (
+            <div className="library-dropdown">
+              <h4 style={{ 
+                padding: "10px 20px", 
+                margin: 0, 
+                fontSize: "0.9rem",
+                color: "#667eea",
+                borderBottom: "1px solid #e0e0e0"
+              }}>
+                Recent Work
+              </h4>
+              {recentWorks.length > 0 ? (
+                <div style={{ maxHeight: "300px", overflowY: "auto" }}>
+                  {recentWorks.map((work, index) => (
+                    <div 
+                      key={index} 
+                      className="library-item"
+                      style={{
+                        padding: "12px 20px",
+                        borderBottom: "1px solid #f0f0f0",
+                        cursor: "pointer",
+                        transition: "background 0.2s"
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "#f5f5f5"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                    >
+                      <div style={{ fontWeight: "600", fontSize: "0.9rem", marginBottom: "4px" }}>
+                        {work.topic}
+                      </div>
+                      <div style={{ fontSize: "0.75rem", color: "#666", marginBottom: "2px" }}>
+                        {work.fileName}
+                      </div>
+                      <div style={{ fontSize: "0.7rem", color: "#999" }}>
+                        {work.date}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ padding: "20px", textAlign: "center", color: "#999", fontSize: "0.85rem" }}>
+                  No recent uploads yet.
+                </div>
+              )}
+            </div>
+          )}
+          
+          <li 
+            onClick={() => navigate("/spaced-repetition")}
+            style={{ cursor: "pointer", position: "relative" }}
+          >
+            🔁 Spaced Repetition
+            {dueReviewsCount > 0 && (
+              <span style={{
+                position: "absolute",
+                top: "5px",
+                right: "10px",
+                background: "#f44336",
+                color: "white",
+                borderRadius: "50%",
+                width: "24px",
+                height: "24px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "0.75rem",
+                fontWeight: "bold"
+              }}>
+                {dueReviewsCount}
+              </span>
+            )}
+          </li>
           <li>👤 Profile</li>
         </ul>
       </div>
 
       {/* Main Content */}
       <div className="main">
-        {/* Recent Work Section */}
-        <div className="header">
-          <h3>Recent Work</h3>
-          <div className="recent-list">
-            {recentWorks.length > 0 ? (
-              recentWorks.map((work, index) => (
-                <div key={index} className="recent-card">
-                  <h4>{work.topic}</h4>
-                  <p>{work.fileName}</p>
-                  <span>{work.date}</span>
-                </div>
-              ))
-            ) : (
-              <p>No recent uploads yet.</p>
-            )}
-          </div>
-        </div>
-
         {/* Upload Section */}
         <div className="upload-section">
           <h2>Upload Your Notes</h2>
@@ -303,97 +373,129 @@ const Dashboard = () => {
               </div>
             )}
 
-            <button type="submit" disabled={uploading}>
-              {uploading ? "Uploading..." : "Upload"}
-            </button>
+            <div className="button-row">
+              <button type="submit" disabled={uploading}>
+                {uploading ? "⏳ Uploading..." : "📤 Upload"}
+              </button>
 
-            <button
-              type="button"
-              onClick={handleAnalyze}
-              disabled={uploading || analyzing || (!currentNoteId && recentWorks.length === 0)}
-              style={{ marginLeft: "10px" }}
-            >
-              {analyzing ? "Analyzing..." : "Analyze"}
-            </button>
+              <button
+                type="button"
+                onClick={handleAnalyze}
+                disabled={uploading || analyzing || !currentNoteId}
+              >
+                {analyzing ? "⏳ Analyzing..." : "🧠 Analyze"}
+              </button>
+            </div>
           </form>
         </div>
 
-        {/* ✅ AI Analysis Result Section */}
+        {/* AI Analysis Result Section */}
         {aiResult && (
-  <div className="ai-result">
-    <h3>✨ AI Analysis Result</h3>
-    <p>{aiResult.assistant || aiResult.message || aiResult.text || JSON.stringify(aiResult)}</p>
+          <div className="ai-result">
+            <h3>✨ AI Analysis Result</h3>
+            <p>{aiResult.assistant || aiResult.message || aiResult.text || JSON.stringify(aiResult)}</p>
 
-    <div className="ai-buttons">
-      <button onClick={() => handleGenerate("flashcards")}>
-        🧾 Generate Flashcards
-      </button>
-      <button onClick={() => handleGenerate("learn")}>
-        🧠 Practice with MCQs
-      </button>
-      <button onClick={() => handleGenerate("mindmap")}>
-        🕸 Create Mind Map
-      </button>
-      <button onClick={() => handleGenerate("explain")}>
-        📣 Explain to Friend
-      </button>
-      <button 
-        onClick={async () => {
-          if (!currentNoteId) {
-            alert("Please upload a note first!");
-            return;
-          }
-          
-          // Prompt for difficulty
-          const difficulty = prompt(
-            "Rate the difficulty of this topic:\n\n" +
-            "1 - Very Easy 😊\n" +
-            "2 - Easy 🙂\n" +
-            "3 - Medium 😐\n" +
-            "4 - Hard 😓\n" +
-            "5 - Very Hard 😰\n\n" +
-            "Enter 1-5:"
-          );
+            <div className="ai-buttons-grid">
+              <button 
+                className="feature-button"
+                onClick={() => handleGenerate("flashcards")}
+              >
+                <div className="button-icon">🧾</div>
+                <div className="button-content">
+                  <h4>Generate Flashcards</h4>
+                  <p>Create interactive flashcards for quick review</p>
+                </div>
+              </button>
 
-          if (!difficulty || difficulty < 1 || difficulty > 5) {
-            alert("Please enter a valid difficulty (1-5)");
-            return;
-          }
+              <button 
+                className="feature-button"
+                onClick={() => handleGenerate("learn")}
+              >
+                <div className="button-icon">🧠</div>
+                <div className="button-content">
+                  <h4>Practice with MCQs</h4>
+                  <p>Test your understanding with scenario-based questions</p>
+                </div>
+              </button>
 
-          try {
-            const lastNote = recentWorks.find(work => work.noteId === currentNoteId) || recentWorks[0];
-            
-            const res = await axios.post("http://localhost:5000/api/spaced-repetition/review", {
-              userId,
-              noteId: currentNoteId,
-              topic: lastNote.topic,
-              difficultyLevel: parseInt(difficulty)
-            });
+              <button 
+                className="feature-button"
+                onClick={() => handleGenerate("mindmap")}
+              >
+                <div className="button-icon">🕸</div>
+                <div className="button-content">
+                  <h4>Create Mind Map</h4>
+                  <p>Visualize connections between concepts</p>
+                </div>
+              </button>
 
-            alert(
-              `✅ Added to spaced repetition!\n\n` +
-              `Next review in ${res.data.intervalDays} day(s)\n` +
-              `Review date: ${new Date(res.data.nextReview).toLocaleDateString()}`
-            );
+              <button 
+                className="feature-button"
+                onClick={() => handleGenerate("explain")}
+              >
+                <div className="button-icon">📣</div>
+                <div className="button-content">
+                  <h4>Explain to Friend</h4>
+                  <p>Test your understanding by explaining concepts</p>
+                </div>
+              </button>
 
-            // Refresh due count
-            const dueRes = await axios.get(`http://localhost:5000/api/spaced-repetition/due/${userId}`);
-            setDueReviewsCount(dueRes.data.count || 0);
-          } catch (error) {
-            console.error("❌ Error adding to spaced repetition:", error);
-            alert("Failed to schedule review: " + (error.response?.data?.message || error.message));
-          }
-        }}
-        style={{ 
-          background: "linear-gradient(135deg, #ff9800, #f57c00)",
-          color: "white"
-        }}
-      >
-        🔁 Add to Spaced Repetition
-      </button>
-    </div>
-  </div>
-)}
+              <button 
+                className="feature-button spaced-repetition-btn"
+                onClick={async () => {
+                  if (!currentNoteId) {
+                    alert("Please upload a note first!");
+                    return;
+                  }
+                  
+                  const difficulty = prompt(
+                    "Rate the difficulty of this topic:\n\n" +
+                    "1 - Very Easy 😊\n" +
+                    "2 - Easy 🙂\n" +
+                    "3 - Medium 😐\n" +
+                    "4 - Hard 😟\n" +
+                    "5 - Very Hard 😰\n\n" +
+                    "Enter 1-5:"
+                  );
+
+                  if (!difficulty || difficulty < 1 || difficulty > 5) {
+                    alert("Please enter a valid difficulty (1-5)");
+                    return;
+                  }
+
+                  try {
+                    const lastNote = recentWorks.find(work => work.noteId === currentNoteId) || recentWorks[0];
+                    
+                    const res = await axios.post("http://localhost:5000/api/spaced-repetition/review", {
+                      userId,
+                      noteId: currentNoteId,
+                      topic: lastNote.topic,
+                      difficultyLevel: parseInt(difficulty)
+                    });
+
+                    alert(
+                      `✅ Added to spaced repetition!\n\n` +
+                      `Next review in ${res.data.intervalDays} day(s)\n` +
+                      `Review date: ${new Date(res.data.nextReview).toLocaleDateString()}`
+                    );
+
+                    const dueRes = await axios.get(`http://localhost:5000/api/spaced-repetition/due/${userId}`);
+                    setDueReviewsCount(dueRes.data.count || 0);
+                  } catch (error) {
+                    console.error("❌ Error adding to spaced repetition:", error);
+                    alert("Failed to schedule review: " + (error.response?.data?.message || error.message));
+                  }
+                }}
+              >
+                <div className="button-icon">🔁</div>
+                <div className="button-content">
+                  <h4>Add to Spaced Repetition</h4>
+                  <p>Schedule reviews based on difficulty level</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

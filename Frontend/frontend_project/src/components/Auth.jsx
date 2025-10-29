@@ -37,36 +37,67 @@ const Auth = () => {
   };
 
   return (
-    <div className="auth-card">
-      <div className="auth-tabs">
-        <div
-          className={`auth-tab ${activeTab === "login" ? "active" : ""}`}
-          onClick={() => setActiveTab("login")}
-        >
-          Login
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-tabs">
+          <div
+            className={`auth-tab ${activeTab === "login" ? "active" : ""}`}
+            onClick={() => setActiveTab("login")}
+          >
+            Login
+          </div>
+          <div
+            className={`auth-tab ${activeTab === "signup" ? "active" : ""}`}
+            onClick={() => setActiveTab("signup")}
+          >
+            Sign Up
+          </div>
         </div>
-        <div
-          className={`auth-tab ${activeTab === "signup" ? "active" : ""}`}
-          onClick={() => setActiveTab("signup")}
-        >
-          Sign Up
-        </div>
-      </div>
 
-      {activeTab === "login" ? (
-        <form onSubmit={handleLoginSubmit}>
-          <input type="email" name="email" placeholder="Email" onChange={handleLoginChange} required />
-          <input type="password" name="password" placeholder="Password" onChange={handleLoginChange} required />
-          <button type="submit">Login</button>
-        </form>
-      ) : (
-        <form onSubmit={handleSignupSubmit}>
-          <input name="name" placeholder="Name" onChange={handleSignupChange} required />
-          <input type="email" name="email" placeholder="Email" onChange={handleSignupChange} required />
-          <input type="password" name="password" placeholder="Password" onChange={handleSignupChange} required />
-          <button type="submit">Sign Up</button>
-        </form>
-      )}
+        {activeTab === "login" ? (
+          <form onSubmit={handleLoginSubmit}>
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              onChange={handleLoginChange}
+              required
+            />
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              onChange={handleLoginChange}
+              required
+            />
+            <button type="submit">Login</button>
+          </form>
+        ) : (
+          <form onSubmit={handleSignupSubmit}>
+            <input
+              name="name"
+              placeholder="Name"
+              onChange={handleSignupChange}
+              required
+            />
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              onChange={handleSignupChange}
+              required
+            />
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              onChange={handleSignupChange}
+              required
+            />
+            <button type="submit">Sign Up</button>
+          </form>
+        )}
+      </div>
     </div>
   );
 };

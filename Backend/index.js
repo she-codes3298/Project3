@@ -13,11 +13,6 @@ const fs = require("fs");
 const path = require("path");
 const OpenAI = require("openai");
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-
-// =======================
-// EXPRESS APP SETUP
-// =======================
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
@@ -26,14 +21,10 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // mount ai routes after app is defined
 app.use('/api/ai', aiRouter);
 
-// =======================
-// GOOGLE VISION SETUP
-// =======================
 
-// Path to service account key
 const keyPath = path.join(__dirname, "vision-key-user.json");
 
-// Ensure the key file exists before creating auth/client
+
 if (!fs.existsSync(keyPath)) {
   console.error("❌ Google Vision key file not found at:", keyPath);
   process.exit(1);
@@ -52,9 +43,6 @@ const auth = new GoogleAuth({
 const client = new vision.ImageAnnotatorClient({ auth });
 console.log("🔑 Google Vision auth initialized successfully");
 
-// =======================
-// DATABASE TABLE CREATION
-// =======================
 const createUserTable = `
   CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -285,15 +273,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// -----------------------
-// UPLOAD MULTIPLE IMAGES WITH TEXT EXTRACTION
-// -----------------------
-// -----------------------
-// UPLOAD MULTIPLE IMAGES WITH TEXT EXTRACTION (LIMIT 5 FILES)
-// -----------------------
-// -----------------------
-// UPLOAD MULTIPLE IMAGES AS SINGLE NOTE ENTRY
-// -----------------------
+
 app.post("/upload", upload.array("files", 5), async (req, res) => {
   console.log("🔥 Upload request received");
   const { topic, userId } = req.body;
@@ -307,7 +287,7 @@ app.post("/upload", upload.array("files", 5), async (req, res) => {
   let combinedText = "";
 
   try {
-    // 1️⃣ Extract text from all uploaded images
+    
     if (req.files && req.files.length > 0) {
       console.log(`📸 Processing ${req.files.length} file(s)...`);
 
@@ -333,7 +313,7 @@ app.post("/upload", upload.array("files", 5), async (req, res) => {
       }
     }
 
-    // 2️⃣ Create one single DB entry per upload batch
+    
     if (combinedText.trim() === "" && topic) {
       combinedText = `Notes for topic: ${topic}`;
     }
@@ -345,8 +325,6 @@ app.post("/upload", upload.array("files", 5), async (req, res) => {
 
     const note = dbResult.rows[0];
     console.log("✅ Combined note saved to database:", note.id);
-
-    // 3️⃣ Send extracted text to OpenAI for confirmation
     if (typeof fetch === "function") {
       try {
         const aiResponse = await fetch("http://localhost:5000/api/ai/send-content", {
@@ -357,8 +335,6 @@ app.post("/upload", upload.array("files", 5), async (req, res) => {
             prompt: "Please confirm that you received this extracted content.",
           }),
         });
-
-        // Robust parsing & logging
         const contentType = aiResponse.headers.get?.("content-type") || "";
         let aiData;
         if (contentType.includes("application/json")) {
@@ -370,8 +346,6 @@ app.post("/upload", upload.array("files", 5), async (req, res) => {
 
         console.log("🤖 AI response status:", aiResponse.status, aiResponse.statusText);
         console.log("🤖 AI response body:", aiData);
-
-        // Handle error-shaped responses (e.g. { error: 'OpenAI error', details: '...json...' })
         let assistant = null;
         if (aiData?.error) {
           // Extract a useful error message

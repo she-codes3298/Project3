@@ -81,10 +81,7 @@ const Flashcards = () => {
   return (
     <div className="flashcards-container">
       <div className="flashcards-header">
-        <button 
-          onClick={() => navigate("/dashboard")} 
-          className="back-btn"
-        >
+        <button onClick={() => navigate("/dashboard")} className="back-btn">
           ← Back to Dashboard
         </button>
         <h2>🧾 Flashcards ({flashcards.length})</h2>
