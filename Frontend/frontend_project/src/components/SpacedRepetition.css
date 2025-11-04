@@ -3,7 +3,7 @@
 .spaced-container {
   width: 100%;
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--dark-blue) 100%);
+    background: white;
   padding: 2rem;
   color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -17,12 +17,12 @@
   padding: 2rem;
   border-radius: 12px;
   margin-bottom: 20px;
-  box-shadow: var(--shadow-dark);
+
   border: var(--border-cyan);
 }
 
 .back-btn {
-  background: linear-gradient(135deg, var(--deep-blue) 0%, var(--cyan-dim) 100%);
+  background: var(--cyan-dim, #008ba3);
   color: var(--text-primary);
   border: var(--border-cyan);
   padding: 10px 20px;
@@ -37,7 +37,7 @@
 .back-btn:hover {
   background: linear-gradient(135deg, var(--cyan-dim) 0%, var(--cyan) 100%);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-cyan);
+ 
 }
 
 .spaced-title {
@@ -45,7 +45,7 @@
   color: var(--cyan-bright);
   font-size: 28px;
   font-weight: bold;
-  text-shadow: 0 0 15px rgba(0, 217, 255, 0.5);
+  
 }
 
 .spaced-subtitle {
@@ -63,7 +63,6 @@
   text-align: center;
   margin: 100px auto;
   max-width: 500px;
-  box-shadow: var(--shadow-dark);
 }
 
 .loading h2 {
@@ -105,13 +104,11 @@
   font-weight: 500;
   color: var(--text-secondary);
   transition: all 0.3s ease;
-  box-shadow: var(--shadow-dark);
 }
 
 .tab:hover {
   border-color: var(--cyan);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-cyan);
 }
 
 .tab.active {
@@ -119,7 +116,6 @@
   color: var(--text-primary);
   font-weight: bold;
   border-color: var(--cyan);
-  box-shadow: var(--shadow-cyan);
 }
 
 /* Info Banner */
@@ -132,7 +128,6 @@
   display: flex;
   align-items: center;
   gap: 15px;
-  box-shadow: var(--shadow-dark);
 }
 
 .info-banner span {
@@ -164,14 +159,12 @@
   background: var(--bg-card);
   padding: 20px;
   border-radius: 12px;
-  box-shadow: var(--shadow-dark);
   transition: all 0.3s ease;
   border: 2px solid var(--cyan-dim);
 }
 
 .review-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-cyan);
   border-color: var(--cyan);
 }
 
@@ -207,7 +200,6 @@
   font-size: 12px;
   font-weight: bold;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(255, 51, 102, 0.3);
 }
 
 .schedule-badge {
@@ -218,12 +210,10 @@
   font-size: 12px;
   font-weight: bold;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(0, 255, 136, 0.3);
 }
 
 .schedule-badge.due {
   background: linear-gradient(135deg, #cc0033 0%, var(--accent-error) 100%);
-  box-shadow: 0 2px 8px rgba(255, 51, 102, 0.3);
 }
 
 /* Review Stats */
@@ -265,7 +255,7 @@
 
 .review-btn {
   flex: 1;
-  background: linear-gradient(135deg, var(--deep-blue) 0%, var(--cyan-dim) 100%);
+  background: var(--cyan-dim, #008ba3);
   color: var(--text-primary);
   border: var(--border-cyan);
   padding: 12px 20px;
@@ -279,7 +269,6 @@
 .review-btn:hover {
   background: linear-gradient(135deg, var(--cyan-dim) 0%, var(--cyan) 100%);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-cyan);
 }
 
 .delete-btn-small {
@@ -296,7 +285,6 @@
 .delete-btn-small:hover {
   background: linear-gradient(135deg, var(--accent-error) 0%, #ff5577 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(255, 51, 102, 0.4);
 }
 
 /* Empty State */
@@ -306,7 +294,6 @@
   padding: 60px 40px;
   border-radius: 12px;
   text-align: center;
-  box-shadow: var(--shadow-dark);
   max-width: 600px;
   margin: 100px auto;
 }
@@ -320,7 +307,7 @@
   margin: 0 0 15px 0;
   color: var(--cyan-bright);
   font-size: 24px;
-  text-shadow: 0 0 15px rgba(0, 217, 255, 0.5);
+
 }
 
 .empty-state p {
@@ -330,7 +317,7 @@
 }
 
 .add-topics-btn {
-  background: linear-gradient(135deg, var(--deep-blue) 0%, var(--cyan-dim) 100%);
+  background: var(--cyan-dim, #008ba3);
   color: var(--text-primary);
   border: var(--border-cyan);
   padding: 12px 30px;
@@ -344,7 +331,6 @@
 .add-topics-btn:hover {
   background: linear-gradient(135deg, var(--cyan-dim) 0%, var(--cyan) 100%);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-cyan);
 }
 
 /* Review Modal */
@@ -355,7 +341,6 @@
   border-radius: 12px;
   max-width: 700px;
   margin: 50px auto;
-  box-shadow: 0 8px 32px rgba(0, 217, 255, 0.3);
   position: relative;
 }
 
@@ -387,7 +372,7 @@
   margin: 0 0 20px 0;
   color: var(--cyan-bright);
   font-size: 28px;
-  text-shadow: 0 0 15px rgba(0, 217, 255, 0.5);
+
 }
 
 .review-topic {
@@ -470,14 +455,12 @@
 .difficulty-btn:hover {
   border-color: var(--cyan);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
 }
 
 .difficulty-btn.selected {
   border: 3px solid var(--cyan);
   font-weight: bold;
-  background: linear-gradient(135deg, var(--deep-blue) 0%, var(--cyan-dim) 100%);
-  box-shadow: var(--shadow-cyan);
+  background: var(--cyan-dim, #008ba3);
 }
 
 .difficulty-emoji {
@@ -501,7 +484,7 @@
 }
 
 .submit-review-btn {
-  background: linear-gradient(135deg, var(--deep-blue) 0%, var(--cyan-dim) 100%);
+  background: var(--cyan-dim, #008ba3);
   color: var(--text-primary);
   border: var(--border-cyan);
   padding: 15px 40px;
@@ -515,7 +498,6 @@
 .submit-review-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--cyan-dim) 0%, var(--cyan) 100%);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-cyan);
 }
 
 .submit-review-btn:disabled {
@@ -540,7 +522,7 @@
 .cancel-review-btn:hover {
   background: var(--bg-card);
   border-color: var(--cyan);
-  box-shadow: 0 4px 12px rgba(0, 217, 255, 0.2);
+  
 }
 
 /* Responsive Design */

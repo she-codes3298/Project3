@@ -190,7 +190,7 @@ const Dashboard = () => {
       const fileInput = document.querySelector('input[type="file"]');
       if (fileInput) fileInput.value = "";
 
-      alert(`${res.data.uploadedCount} file(s) uploaded and processed successfully! Click "Analyze" to continue.`);
+      alert(`Files have been uploaded and processed successfully! Click "Analyze" to continue.`);
     } catch (error) {
       console.error("❌ Upload error:", error);
       alert("Upload failed! " + (error.response?.data?.message || error.message));
@@ -375,7 +375,7 @@ const Dashboard = () => {
 
             <div className="button-row">
               <button type="submit" disabled={uploading}>
-                {uploading ? "⏳ Uploading..." : "📤 Upload"}
+                {uploading ? "⏳ Uploading..." : " Upload"}
               </button>
 
               <button
@@ -383,7 +383,7 @@ const Dashboard = () => {
                 onClick={handleAnalyze}
                 disabled={uploading || analyzing || !currentNoteId}
               >
-                {analyzing ? "⏳ Analyzing..." : "🧠 Analyze"}
+                {analyzing ? "⏳ Analyzing..." : " Analyze"}
               </button>
             </div>
           </form>
@@ -396,6 +396,17 @@ const Dashboard = () => {
             <p>{aiResult.assistant || aiResult.message || aiResult.text || JSON.stringify(aiResult)}</p>
 
             <div className="ai-buttons-grid">
+               <button 
+                className="feature-button"
+                onClick={() => handleGenerate("mindmap")}
+              >
+                <div className="button-icon">🕸</div>
+                <div className="button-content">
+                  <h4>Create Mind Map</h4>
+                  <p>Visualize connections between concepts</p>
+                </div>
+              </button>
+
               <button 
                 className="feature-button"
                 onClick={() => handleGenerate("flashcards")}
@@ -418,16 +429,7 @@ const Dashboard = () => {
                 </div>
               </button>
 
-              <button 
-                className="feature-button"
-                onClick={() => handleGenerate("mindmap")}
-              >
-                <div className="button-icon">🕸</div>
-                <div className="button-content">
-                  <h4>Create Mind Map</h4>
-                  <p>Visualize connections between concepts</p>
-                </div>
-              </button>
+              
 
               <button 
                 className="feature-button"

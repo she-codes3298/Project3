@@ -90,22 +90,22 @@ const createTable_explain=`CREATE TABLE IF NOT EXISTS explanation_history (
 pool
   .query(createUserTable)
   .then(() => {
-    console.log("✅ Users table ready");
+    console.log(" Users table ready");
     return pool.query(createNotesTable);
   })
   .then(() => {
-    console.log("✅ Notes table ready");
+    console.log(" Notes table ready");
     return pool.query(createTableSpaced_repetition);
   })
    .then(() => {
-    console.log("✅Spaced_repetition table is ready");
+    console.log("Spaced_repetition table is ready");
     return pool.query(createTable_explain);
   })
    .then(() => {
-    console.log("✅ explain table is ready");
+    console.log(" explain table is ready");
   })
   .catch((err) => {
-    console.error("❌ Error creating tables:", err);
+    console.error(" Error creating tables:", err);
   });
 
 const JWT_SECRET = process.env.JWT_SECRET || "mysecretkey123";
@@ -209,7 +209,7 @@ app.get("/test", (req, res) => {
 // SIGNUP
 // -----------------------
 app.post("/signup", async (req, res) => {
-  console.log("🔥 Signup request received:", req.body);
+  console.log(" Signup request received:", req.body);
 
   const { name, email, password } = req.body;
   if (!name || !email || !password)
@@ -227,13 +227,13 @@ app.post("/signup", async (req, res) => {
       [name, email, hashedPassword]
     );
 
-    console.log("✅ User created successfully:", result.rows[0]);
+    console.log(" User created successfully:", result.rows[0]);
     res.status(201).json({
       message: "User created successfully",
       user: result.rows[0],
     });
   } catch (error) {
-    console.error("❌ Error creating user:", error);
+    console.error(" Error creating user:", error);
     res.status(500).json({ message: "Error creating user", error: error.message });
   }
 });
@@ -246,7 +246,7 @@ app.post("/login", async (req, res) => {
 
   const { email, password } = req.body;
   if (!email || !password)
-    return res.status(400).json({ message: "Email and password are required" });
+    return res.status(400).json({ message: "Invalid Credential" });
 
   try {
     const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
@@ -261,21 +261,21 @@ app.post("/login", async (req, res) => {
       expiresIn: "1h",
     });
 
-    console.log("✅ Login successful for:", user.email);
+    console.log("Login successful for:", user.email);
     res.json({
       message: "Login successful",
       token,
       user: { id: user.id, name: user.name, email: user.email },
     });
   } catch (error) {
-    console.error("❌ Error logging in:", error);
+    console.error(" Error logging in:", error);
     res.status(500).json({ message: "Error logging in", error: error.message });
   }
 });
 
 
 app.post("/upload", upload.array("files", 5), async (req, res) => {
-  console.log("🔥 Upload request received");
+  console.log(" Upload request received");
   const { topic, userId } = req.body;
 
   if (!userId) return res.status(400).json({ message: "User ID is required" });
@@ -289,7 +289,7 @@ app.post("/upload", upload.array("files", 5), async (req, res) => {
   try {
     
     if (req.files && req.files.length > 0) {
-      console.log(`📸 Processing ${req.files.length} file(s)...`);
+      console.log(`Processing ${req.files.length} file(s)...`);
 
       for (const file of req.files) {
         const filePath = path.resolve(file.path);
@@ -306,9 +306,9 @@ app.post("/upload", upload.array("files", 5), async (req, res) => {
             : "No text detected in this image.";
 
           combinedText += `\n\n--- [${file.originalname}] ---\n${text}`;
-          console.log(`✅ Extracted text from: ${file.originalname}`);
+          console.log(` Extracted text from: ${file.originalname}`);
         } catch (err) {
-          console.error(`❌ Vision API error for ${file.originalname}:`, err.message);
+          console.error(`Vision API error for ${file.originalname}:`, err.message);
         }
       }
     }
@@ -324,7 +324,7 @@ app.post("/upload", upload.array("files", 5), async (req, res) => {
     );
 
     const note = dbResult.rows[0];
-    console.log("✅ Combined note saved to database:", note.id);
+    console.log("Combined note saved to database:", note.id);
     if (typeof fetch === "function") {
       try {
         const aiResponse = await fetch("http://localhost:5000/api/ai/send-content", {
@@ -361,7 +361,7 @@ app.post("/upload", upload.array("files", 5), async (req, res) => {
               errorMessage = aiData.details;
             }
           }
-          console.warn("⚠️ AI returned an error:", errorMessage);
+          console.warn(" AI returned an error:", errorMessage);
           assistant = `AI error: ${errorMessage}`; // fallback so assistant isn't undefined
         } else {
           // Try multiple common locations for assistant text
@@ -379,13 +379,13 @@ app.post("/upload", upload.array("files", 5), async (req, res) => {
         if (assistant) {
           console.log("🤖 Assistant text:", assistant);
         } else {
-          console.warn("⚠️ Assistant content not found in AI response. Check the full response above for structure.");
+          console.warn(" Assistant content not found in AI response. Check the full response above for structure.");
         }
       } catch (aiError) {
-        console.error("❌ Error sending content to AI:", aiError.message);
+        console.error(" Error sending content to AI:", aiError.message);
       }
     } else {
-      console.warn("⚠️ fetch is not available in this Node runtime — skipping AI forwarding step");
+      console.warn(" fetch is not available in this Node runtime — skipping AI forwarding step");
     }
 
     // 4️⃣ Send final response to frontend
@@ -397,7 +397,7 @@ app.post("/upload", upload.array("files", 5), async (req, res) => {
     });
 
   } catch (error) {
-    console.error("❌ Upload error:", error);
+    console.error(" Upload error:", error);
     res.status(500).json({ message: "Upload failed", error: error.message });
   } finally {
     // 4️⃣ Clean up uploaded files
@@ -422,14 +422,14 @@ app.get("/notes/:userId", async (req, res) => {
     );
     res.json({ notes: result.rows });
   } catch (error) {
-    console.error("❌ Error fetching notes:", error);
+    console.error(" Error fetching notes:", error);
     res.status(500).json({ message: "Error fetching notes", error: error.message });
   }
 });
 // POST: Schedule/Update Review
 // ===================================
 app.post("/api/spaced-repetition/review", async (req, res) => {
-  console.log("📅 Spaced repetition review request:", req.body);
+  console.log(" Spaced repetition review request:", req.body);
   
   const { userId, noteId, topic, difficultyLevel } = req.body;
   
@@ -481,7 +481,7 @@ app.post("/api/spaced-repetition/review", async (req, res) => {
         [difficultyLevel, newEaseFactor, intervalDays, nextReviewDate, userId, noteId]
       );
       
-      console.log("✅ Updated existing review schedule");
+      console.log(" Updated existing review schedule");
       
     } else {
       // ===================================
@@ -501,7 +501,7 @@ app.post("/api/spaced-repetition/review", async (req, res) => {
         [userId, noteId, topic, difficultyLevel, newEaseFactor, intervalDays, nextReviewDate]
       );
       
-      console.log("✅ Created new review schedule");
+      console.log(" Created new review schedule");
     }
     
     const review = result.rows[0];
@@ -518,7 +518,7 @@ app.post("/api/spaced-repetition/review", async (req, res) => {
     });
     
   } catch (error) {
-    console.error("❌ Error scheduling review:", error);
+    console.error(" Error scheduling review:", error);
     res.status(500).json({ 
       message: "Error scheduling review", 
       error: error.message 
@@ -543,7 +543,7 @@ app.get("/api/spaced-repetition/due/:userId", async (req, res) => {
       [userId]
     );
     
-    console.log(`📚 Found ${result.rows.length} due reviews for user ${userId}`);
+    console.log(` Found ${result.rows.length} due reviews for user ${userId}`);
     
     res.json({
       count: result.rows.length,
@@ -551,7 +551,7 @@ app.get("/api/spaced-repetition/due/:userId", async (req, res) => {
     });
     
   } catch (error) {
-    console.error("❌ Error fetching due reviews:", error);
+    console.error(" Error fetching due reviews:", error);
     res.status(500).json({ 
       message: "Error fetching due reviews", 
       error: error.message 
@@ -583,7 +583,7 @@ app.get("/api/spaced-repetition/scheduled/:userId", async (req, res) => {
     });
     
   } catch (error) {
-    console.error("❌ Error fetching scheduled reviews:", error);
+    console.error(" Error fetching scheduled reviews:", error);
     res.status(500).json({ 
       message: "Error fetching scheduled reviews", 
       error: error.message 
@@ -615,7 +615,7 @@ app.delete("/api/spaced-repetition/:userId/:noteId", async (req, res) => {
     });
     
   } catch (error) {
-    console.error("❌ Error deleting review schedule:", error);
+    console.error(" Error deleting review schedule:", error);
     res.status(500).json({ 
       message: "Error deleting review schedule", 
       error: error.message 
@@ -646,7 +646,7 @@ app.post("/api/explanation-history/save", async (req, res) => {
       [userId, noteId, topic, userExplanation, JSON.stringify(aiFeedback), understandingScore]
     );
     
-    console.log("✅ Explanation history saved successfully");
+    console.log("Explanation history saved successfully");
     
     res.json({
       message: "Explanation saved successfully",
@@ -654,7 +654,7 @@ app.post("/api/explanation-history/save", async (req, res) => {
     });
     
   } catch (error) {
-    console.error("❌ Error saving explanation history:", error);
+    console.error(" Error saving explanation history:", error);
     res.status(500).json({ 
       message: "Error saving explanation history", 
       error: error.message 
@@ -699,9 +699,9 @@ app.get("/api/explanation-history/:userId", async (req, res) => {
 // START SERVER
 // =======================
 app.listen(5000, () => {
-  console.log("🚀 Server running on port 5000");
-  console.log("🔑 Google Vision credentials loaded from:", keyPath);
-  console.log("📸 Multiple file upload enabled (max 5 files per request)");
+  console.log(" Server running on port 5000");
+  console.log(" Google Vision credentials loaded from:", keyPath);
+  console.log(" Multiple file upload enabled (max 5 files per request)");
 });
 
 module.exports = app;

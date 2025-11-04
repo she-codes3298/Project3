@@ -3,7 +3,7 @@
 .explain-container {
   width: 100%;
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--dark-blue) 100%);
+    background: white;
   padding: 2rem;
   color: var(--text-primary);
   overflow-y: auto;
@@ -16,12 +16,12 @@
   padding: 2rem;
   border-radius: 12px;
   margin-bottom: 20px;
-  box-shadow: var(--shadow-dark);
+ 
   border: var(--border-cyan);
 }
 
 .back-btn {
-  background: linear-gradient(135deg, var(--deep-blue) 0%, var(--cyan-dim) 100%);
+  background: var(--cyan-dim, #008ba3);
   color: var(--text-primary);
   border: var(--border-cyan);
   padding: 10px 20px;
@@ -36,7 +36,7 @@
 .back-btn:hover {
   background: linear-gradient(135deg, var(--cyan-dim) 0%, var(--cyan) 100%);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-cyan);
+ 
 }
 
 .explain-title {
@@ -44,7 +44,7 @@
   color: var(--cyan-bright);
   font-size: 28px;
   font-weight: bold;
-  text-shadow: 0 0 15px rgba(0, 217, 255, 0.5);
+  
 }
 
 .explain-subtitle {
@@ -60,7 +60,7 @@
   text-align: center;
   margin: 100px auto;
   max-width: 500px;
-  box-shadow: var(--shadow-dark);
+ 
 }
 
 .loading h2 {
@@ -91,7 +91,7 @@
   text-align: center;
   margin: 100px auto;
   max-width: 500px;
-  box-shadow: var(--shadow-dark);
+
 }
 
 .error-state h2 {
@@ -110,7 +110,7 @@
   border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
-  background: linear-gradient(135deg, var(--deep-blue) 0%, var(--cyan-dim) 100%);
+  background: var(--cyan-dim, #008ba3);
   color: var(--text-primary);
   font-weight: 600;
   transition: all 0.3s ease;
@@ -118,7 +118,7 @@
 
 .error-state button:hover {
   background: linear-gradient(135deg, var(--cyan-dim) 0%, var(--cyan) 100%);
-  box-shadow: var(--shadow-cyan);
+ 
 }
 
 .tips-card {
@@ -127,7 +127,7 @@
   padding: 20px;
   border-radius: 12px;
   margin-bottom: 20px;
-  box-shadow: var(--shadow-dark);
+
 }
 
 .tips-header {
@@ -181,7 +181,7 @@
   padding: 20px;
   border-radius: 12px;
   margin-bottom: 20px;
-  box-shadow: var(--shadow-dark);
+
 }
 
 .explanation-box label {
@@ -209,7 +209,7 @@
 .explanation-box textarea:focus {
   outline: none;
   border-color: var(--cyan);
-  box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+ 
 }
 
 .char-counter {
@@ -230,8 +230,8 @@
 }
 
 .submit-btn {
-  background: linear-gradient(135deg, var(--deep-blue) 0%, var(--cyan-dim) 100%);
-  color: var(--text-primary);
+  background: var(--cyan-dim, #008ba3);
+  color: black;
   border: var(--border-cyan);
   padding: 15px 40px;
   border-radius: 8px;
@@ -248,7 +248,7 @@
 .submit-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--cyan-dim) 0%, var(--cyan) 100%);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-cyan);
+
 }
 
 .submit-btn:disabled {
@@ -263,7 +263,7 @@
   border: var(--border-cyan);
   padding: 30px;
   border-radius: 12px;
-  box-shadow: var(--shadow-dark);
+ 
   width: 100%;
 }
 
@@ -282,7 +282,7 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 20px;
-  box-shadow: 0 0 30px rgba(0, 217, 255, 0.4);
+ 
   background: var(--bg-secondary);
 }
 
@@ -290,7 +290,7 @@
   font-size: 48px;
   font-weight: bold;
   color: var(--cyan-bright);
-  text-shadow: 0 0 20px rgba(0, 217, 255, 0.6);
+  
 }
 
 .score-label {
@@ -331,7 +331,7 @@
   height: 100%;
   transition: width 0.3s ease;
   background: linear-gradient(90deg, var(--cyan-dim) 0%, var(--cyan) 100%);
-  box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+ 
 }
 
 .sub-score-value {
@@ -507,7 +507,7 @@
 .try-again-btn:hover,
 .done-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 217, 255, 0.3);
+
 }
 
 @media (max-width: 768px) {

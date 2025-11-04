@@ -3,7 +3,7 @@
 .learn-container {
   width: 100%;
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--dark-blue) 100%);
+    background: white;
   padding: 2rem;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   overflow-y: auto;
@@ -19,11 +19,11 @@
   background: var(--bg-secondary);
   border-radius: 12px;
   border: var(--border-cyan);
-  box-shadow: var(--shadow-cyan);
+
 }
 
 .back-btn {
-  background: linear-gradient(135deg, var(--deep-blue) 0%, var(--cyan-dim) 100%);
+  background: var(--cyan-dim, #008ba3);
   border: var(--border-cyan);
   color: var(--text-primary);
   padding: 0.75rem 1.5rem;
@@ -38,14 +38,14 @@
 .back-btn:hover {
   background: linear-gradient(135deg, var(--cyan-dim) 0%, var(--cyan) 100%);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-cyan);
+ 
 }
 
 .learn-title {
   font-size: 2.5rem;
   margin: 1rem 0;
   color: var(--cyan-bright);
-  text-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
+  
 }
 
 .learn-subtitle {
@@ -90,7 +90,7 @@
   text-align: center;
   max-width: 600px;
   margin: 2rem auto;
-  box-shadow: var(--shadow-dark);
+ 
 }
 
 .error h2 {
@@ -103,7 +103,7 @@
 }
 
 .error button {
-  background: linear-gradient(135deg, var(--deep-blue) 0%, var(--cyan-dim) 100%);
+  background: var(--cyan-dim, #008ba3);
   color: var(--text-primary);
   border: var(--border-cyan);
   padding: 0.75rem 1.5rem;
@@ -116,7 +116,7 @@
 
 .error button:hover {
   background: linear-gradient(135deg, var(--cyan-dim) 0%, var(--cyan) 100%);
-  box-shadow: var(--shadow-cyan);
+ 
 }
 
 /* Score Card */
@@ -127,7 +127,7 @@
   border-radius: 16px;
   margin: 1.5rem auto;
   max-width: 500px;
-  box-shadow: var(--shadow-cyan);
+
   animation: slideDown 0.5s ease;
 }
 
@@ -146,7 +146,7 @@
   color: var(--cyan-bright);
   font-size: 1.8rem;
   margin-bottom: 1rem;
-  text-shadow: 0 0 15px rgba(0, 217, 255, 0.5);
+  
 }
 
 .score-text {
@@ -160,7 +160,7 @@
   font-weight: bold;
   color: var(--cyan-bright);
   margin-top: 0.5rem;
-  text-shadow: 0 0 20px rgba(0, 217, 255, 0.6);
+  
 }
 
 /* Questions Container */
@@ -179,7 +179,7 @@
   border: var(--border-cyan);
   border-radius: 16px;
   padding: 2rem;
-  box-shadow: var(--shadow-dark);
+ 
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   animation: fadeIn 0.5s ease;
   width: 100%;
@@ -198,12 +198,12 @@
 
 .question-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-cyan);
+
 }
 
 .question-number {
   display: inline-block;
-  background: linear-gradient(135deg, var(--deep-blue) 0%, var(--cyan-dim) 100%);
+  background: var(--cyan-dim, #008ba3);
   color: var(--text-primary);
   padding: 0.5rem 1rem;
   border-radius: 20px;
@@ -289,7 +289,7 @@
 .option-btn:hover:not(:disabled) {
   border-color: var(--cyan);
   transform: translateX(4px);
-  box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
+  
 }
 
 .option-btn:disabled {
@@ -303,7 +303,7 @@
   color: var(--text-primary);
   font-weight: 600;
   transform: translateX(4px);
-  box-shadow: var(--shadow-cyan);
+  
 }
 
 /* Correct Answer */
@@ -346,14 +346,14 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: var(--shadow-cyan);
+ 
   width: 100%;
 }
 
 .check-btn:hover {
   background: linear-gradient(135deg, var(--cyan-dim) 0%, var(--cyan) 100%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 217, 255, 0.5);
+  
 }
 
 .check-btn:active {
@@ -403,7 +403,7 @@
   text-align: center;
   max-width: 600px;
   margin: 2rem auto;
-  box-shadow: var(--shadow-dark);
+ 
 }
 
 .no-questions p {
@@ -413,7 +413,7 @@
 }
 
 .no-questions button {
-  background: linear-gradient(135deg, var(--deep-blue) 0%, var(--cyan-dim) 100%);
+  background: var(--cyan-dim, #008ba3);
   color: var(--text-primary);
   border: var(--border-cyan);
   padding: 0.875rem 1.75rem;
@@ -425,7 +425,7 @@
 
 .no-questions button:hover {
   background: linear-gradient(135deg, var(--cyan-dim) 0%, var(--cyan) 100%);
-  box-shadow: var(--shadow-cyan);
+
 }
 
 /* Responsive Design */

@@ -3,7 +3,7 @@
 .flashcards-container {
   width: 100%;
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--dark-blue) 100%);
+    background: white;
   padding: 2rem;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   overflow-y: auto;
@@ -19,11 +19,11 @@
   background: var(--bg-secondary);
   border-radius: 12px;
   border: var(--border-cyan);
-  box-shadow: var(--shadow-cyan);
+
 }
 
 .back-btn {
-  background: linear-gradient(135deg, var(--deep-blue) 0%, var(--cyan-dim) 100%);
+  background: var(--cyan-dim, #008ba3);
   color: var(--text-primary);
   border: var(--border-cyan);
   padding: 0.75rem 1.5rem;
@@ -38,14 +38,13 @@
 .back-btn:hover {
   background: linear-gradient(135deg, var(--cyan-dim) 0%, var(--cyan) 100%);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-cyan);
+ 
 }
 
 .flashcards-header h2 {
   font-size: 2.5rem;
   margin: 1rem 0 0.5rem;
   color: var(--cyan-bright);
-  text-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
 }
 
 .hint {
@@ -92,7 +91,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  box-shadow: var(--shadow-dark);
+
   border: var(--border-cyan);
 }
 
@@ -101,11 +100,11 @@
 }
 
 .flashcard-front:hover {
-  box-shadow: var(--shadow-cyan);
+
 }
 
 .flashcard-back {
-  background: linear-gradient(135deg, var(--deep-blue) 0%, var(--cyan-dim) 100%);
+  background: var(--cyan-dim, #008ba3);
   color: var(--text-primary);
   transform: rotateY(180deg);
 }
@@ -193,7 +192,7 @@
 
 .error button,
 .no-flashcards button {
-  background: linear-gradient(135deg, var(--deep-blue) 0%, var(--cyan-dim) 100%);
+  background: var(--cyan-dim, #008ba3);
   color: var(--text-primary);
   border: var(--border-cyan);
   padding: 0.875rem 2rem;
@@ -208,7 +207,7 @@
 .no-flashcards button:hover {
   background: linear-gradient(135deg, var(--cyan-dim) 0%, var(--cyan) 100%);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-cyan);
+ 
 }
 
 /* Responsive Design */

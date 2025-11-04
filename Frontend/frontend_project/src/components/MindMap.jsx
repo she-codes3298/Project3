@@ -257,7 +257,7 @@ const MindMap = () => {
   return (
     <div className="mindmap-container">
       <div className="mindmap-header">
-        <button onClick={() => navigate("/dashboard")} className="back-btn">
+        <button onClick={() => navigate("/dashboard")} style={{backgroundColor:"var(--cyan-dim, #008ba3);"}} className="back-btn">
           ← Back to Dashboard
         </button>
         <h2>🕸 Interactive Mind Map</h2>
